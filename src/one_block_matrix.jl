@@ -56,7 +56,28 @@ Base.:(/)(A::OneBlockMatrix, α::Number) = A * inv(α)
 Base.:(//)(A::OneBlockMatrix, α::Number) = A * (1//α)
 
 for f in [:exp, :sin, :cos, :tan, :sqrt]
-    @eval Base.$f(A::OneBlockMatrix) = OneBlockMatrix($f(A.block), A.m, A.n)
+    @eval begin
+        function Base.$f(A::OneBlockMatrix)
+            M,N = size(A)
+            M == N || throw(DimensionMismatch("matrix is not square: dimensions are ($(M), $(N))"))
+
+            b = A.block
+            m,n = size(b)
+
+            block = if m == n
+                $f(b)
+            else
+                ee = eigen(A)
+                Q = first(ee.vectors.blocks)
+                Q*Diagonal($f.(ee.values[1:m]))*inv(Q)
+            end
+
+            fz = $f(zero(eltype(block)))
+            D = Diagonal(fill(fz, M))
+
+            BlockSparseDiagonal(D, [block-fz*I], [1])
+        end
+    end
 end
 
 # * Matrix products
@@ -70,7 +91,7 @@ function LinearAlgebra.mul!(y::AbstractMatrix, A::OneBlockMatrix, x::AbstractMat
     nX = size(x,2)
     mY == mA && nY == nX ||
         throw(DimensionMismatch("Dimensions of y ($(mY),$(nY)) must agree with first dimension of A ($(mA)), and second dimension of x ($(nX)), respectively"))
-    
+
     if iszero(β)
         y .= false
     elseif !isone(β)
@@ -82,7 +103,7 @@ function LinearAlgebra.mul!(y::AbstractMatrix, A::OneBlockMatrix, x::AbstractMat
     m,n = size(A.block)
     mul!(view(y, 1:m, :), A.block, view(x, 1:n, :),
          α, true)
-    
+
     y
 end
 
@@ -95,11 +116,11 @@ function LinearAlgebra.mul!(y::OneBlockMatrix, A::OneBlockMatrix, x::OneBlockMat
     nX = size(x,2)
     mY == mA && nY == nX ||
         throw(DimensionMismatch("Dimensions of y ($(mY),$(nY)) must agree with first dimension of A ($(mA)), and second dimension of x ($(nX)), respectively"))
-    
+
     mY,nY = size(y.block)
     mA,nA = size(A.block)
     mX,nX = size(x.block)
-    
+
     mY == mA && nY == nX ||
         throw(DimensionMismatch("Dimensions of y subblock ($(mY),$(nY)) must agree with first dimension of A subblock ($(mA)), and second dimension of x subblock ($(nX)), respectively"))
 
@@ -135,7 +156,7 @@ function mul!(y::OneBlockMatrix, A::OneBlockMatrix, D::Diagonal,
     nD = size(D,2)
     mY == mA && nY == nD ||
         throw(DimensionMismatch("Dimensions of y ($(mY),$(nY)) must agree with first dimension of A ($(mA)), and second dimension of D ($(nD)), respectively"))
-    
+
     m = size(A.block,1)
     mul!(y.block, A.block, Diagonal(view(D.diag, 1:m)), α, β)
     y
@@ -151,7 +172,7 @@ function mul!(y::OneBlockMatrix, D::Diagonal, A::OneBlockMatrix,
     nA = size(A,2)
     mY == mD && nY == nA ||
         throw(DimensionMismatch("Dimensions of y ($(mY),$(nY)) must agree with first dimension of D ($(mD)), and second dimension of A ($(nA)), respectively"))
-    
+
     m = size(A.block,1)
     mul!(y.block, Diagonal(view(D.diag, 1:m)), A.block, α, β)
     y
@@ -237,3 +258,24 @@ function *(A::OneBlockMatrix, T::VariousBandedMatrices)
 end
 
 export OneBlockMatrix
+
+# * Eigenfactorization
+
+function LinearAlgebra.eigen(A::OneBlockMatrix{T}) where T
+    M,N = size(A)
+    M == N || throw(DimensionMismatch("matrix is not square: dimensions are ($(M), $(N))"))
+    m,n = size(A.block)
+
+    mn = max(m,n)
+    Mmn = M-mn
+
+    b = zeros(T, mn, mn)
+    copyto!(view(b, 1:m, 1:n), A.block)
+
+    ee = eigen(b)
+    U = eltype(ee)
+    λ = vcat(ee.values, zeros(U, Mmn))
+    Φ = BlockSparseDiagonal(Diagonal(ones(U, M)), [ee.vectors - I], [1])
+
+    Eigen(λ, Φ)
+end

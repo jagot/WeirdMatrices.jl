@@ -3,8 +3,13 @@ uuid = "0ab8aefd-a72a-459c-b9b7-009309dcfd2a"
 authors = ["Stefanos Carlström <stefanos.carlstrom@gmail.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+BandedMatrices = "aae01518-5342-5314-be14-df237901396f"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+
 [compat]
 julia = "1.4"
+BandedMatrices = "0.15"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

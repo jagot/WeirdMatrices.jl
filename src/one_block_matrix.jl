@@ -46,6 +46,9 @@ for T in [Integer,Real]
     end
 end
 
+Base.:(-)(A::OneBlockMatrix) =
+    OneBlockMatrix(-A.block, A.m, A.n)
+
 Base.:(*)(α::Number, A::OneBlockMatrix) =
     OneBlockMatrix(α*A.block, A.m, A.n)
 
@@ -76,6 +79,47 @@ for f in [:exp, :sin, :cos, :tan, :sqrt]
             D = Diagonal(fill(fz, M))
 
             BlockSparseDiagonal(D, [block-fz*I], [1])
+        end
+    end
+end
+
+# * Matrix arithmetic
+
+for op in [:(+), :(-)]
+    @eval begin
+        function $op(A::OneBlockMatrix, B::OneBlockMatrix)
+            size(A) == size(B) || throw(DimensionMismatch("Cannot add matrices of different sizes"))
+
+            mA,nA = size(A.block)
+            mB,nB = size(B.block)
+
+            T = Base.promote_op($op, eltype(A), eltype(B))
+            b = zeros(T, max(mA,mB), max(nA,nB))
+
+            view(b, 1:mA, 1:nA) .+= A.block
+            view(b, 1:mB, 1:nB) .+= $(op).(B.block)
+
+            OneBlockMatrix(b, size(A)...)
+        end
+
+        function $op(I::UniformScaling, A::OneBlockMatrix)
+            M,N = size(A)
+            M == N || throw(DimensionMismatch("matrix is not square: dimensions are ($(M), $(N))"))
+
+            T = Base.promote_op($op, eltype(A), eltype(I))
+
+            D = Diagonal{T}(I, M)
+            BlockSparseDiagonal(D, [$op(A.block)], [1])
+        end
+
+        function $op(A::OneBlockMatrix, I::UniformScaling)
+            M,N = size(A)
+            M == N || throw(DimensionMismatch("matrix is not square: dimensions are ($(M), $(N))"))
+
+            T = Base.promote_op($op, eltype(A), eltype(I))
+
+            D = $op(Diagonal{T}(I, M))
+            BlockSparseDiagonal(D, [A.block], [1])
         end
     end
 end

@@ -51,4 +51,14 @@ function LinearAlgebra.mul!(y::AbstractMatrix, A::BlockSparseDiagonal, x::Abstra
     y
 end
 
+function LinearAlgebra.mul!(y::AbstractVector, A::BlockSparseDiagonal, x::AbstractVector,
+                            α::Number=true, β::Number=false)
+    mul!(y, A.diag, x, α, β)
+    for (b,bs) in zip(A.blocks, A.block_starts)
+        interval = bs:bs+size(b,2)-1
+        mul!(view(y, interval), b, view(x, interval), α, true)
+    end
+    y
+end
+
 export BlockSparseDiagonal

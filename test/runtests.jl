@@ -14,6 +14,10 @@ using Test
         @test out == Matrix(A)
         @test eye*A == Matrix(A)
 
+        mA = -A
+        @test mA isa OneBlockMatrix
+        @test mA.block == -A.block
+
         o = ones(Int, N)
         D = Diagonal(o)
         T = Tridiagonal(o[2:end], 2o, 3o[2:end])

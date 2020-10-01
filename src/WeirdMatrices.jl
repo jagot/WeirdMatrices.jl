@@ -10,9 +10,11 @@ import Base: size, similar,
     require_one_based_indexing, getindex
 
 using BandedMatrices
+using SparseArrays
 
 include("skew_tridiagonal.jl")
 include("one_block_matrix.jl")
 include("block_sparse_diagonal.jl")
+include("column_sparse_matrix.jl")
 
 end

@@ -1,6 +1,7 @@
 using WeirdMatrices
 using LinearAlgebra
 using BandedMatrices
+using SparseArrays
 using Test
 
 @testset "WeirdMatrices.jl" begin
@@ -72,5 +73,44 @@ using Test
         case(Bu*A, Matrix(Bu)*Matrix(A))
         case(Bu*(Bu*A), Matrix(Bu)*Matrix(Bu)*Matrix(A))
         case(Bu*A*Bu, Matrix(Bu)*Matrix(A)*Matrix(Bu))
+    end
+
+    @testset "ColumnSparseMatrix" begin
+        m,n = 10, 150
+        u = rand(ComplexF64, m, 4)
+
+        is = [2,4,10,6]
+        A = ColumnSparseMatrix(m, n, u, is)
+        @test issorted(A.col_indices)
+        MA = Matrix(A)
+        B = rand(ComplexF64, n, m)
+
+        @test A*B ≈ MA*B
+
+        C = rand(m, n)
+        @test dot(A, C) ≈ dot(MA, C)
+        @test dot(C, A) ≈ dot(C, MA)
+        # display(@benchmark(dot(A,C)))
+        # display(@benchmark(dot(MA,C)))
+
+        @test dot(A,A) ≈ dot(MA,MA)
+        # # Not as dramatic a difference as e.g. dot(A,C) vs dot(MA,C)
+        # display(@benchmark(dot(A,A)))
+        # display(@benchmark(dot(MA,MA)))
+
+        CMA = ColumnSparseMatrix(MA)
+        @test CMA isa ColumnSparseMatrix
+        @test CMA == A
+
+        BA = B*A
+        @test BA isa ColumnSparseMatrix
+        @test BA ≈ B*MA
+
+        # display(@benchmark(B*A))
+        # display(@benchmark(B*MA))AA = A'A
+
+        AA = A'A
+        @test AA isa SparseMatrixCSC
+        @test AA ≈ MA'MA
     end
 end

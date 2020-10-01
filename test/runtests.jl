@@ -112,5 +112,13 @@ using Test
         AA = A'A
         @test AA isa SparseMatrixCSC
         @test AA ≈ MA'MA
+
+        Ahalf = A/2
+        @test Ahalf isa ColumnSparseMatrix
+        @test Ahalf ≈ MA/2
+
+        Atwice = A*2
+        @test Atwice isa ColumnSparseMatrix
+        @test Atwice ≈ MA*2
     end
 end

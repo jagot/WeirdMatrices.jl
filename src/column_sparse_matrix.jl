@@ -114,4 +114,11 @@ function Base.:(*)(A::Adjoint{<:Any,<:ColumnSparseMatrix}, B::ColumnSparseMatrix
     sparse(I, J, V, ma, nb)
 end
 
+Base.:(*)(α::Number, A::ColumnSparseMatrix) =
+    ColumnSparseMatrix(A.m, A.n, α*A.columns, A.col_indices)
+
+Base.:(*)(A::ColumnSparseMatrix, α::Number) = α*A
+
+Base.:(/)(A::ColumnSparseMatrix, α::Number) = inv(α)*A
+
 export ColumnSparseMatrix

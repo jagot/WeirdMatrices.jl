@@ -1,0 +1,3 @@
+var documenterSearchIndex = {"docs":
+[{"location":"","page":"Home","title":"Home","text":"CurrentModule = WeirdMatrices","category":"page"},{"location":"#WeirdMatrices","page":"Home","title":"WeirdMatrices","text":"","category":"section"},{"location":"","page":"Home","title":"Home","text":"","category":"page"},{"location":"","page":"Home","title":"Home","text":"Modules = [WeirdMatrices]","category":"page"},{"location":"#WeirdMatrices.intersect_with_indices-Tuple{Any,Any}","page":"Home","title":"WeirdMatrices.intersect_with_indices","text":"intersect_with_indices(u, v)\n\nIntersect u and v and return the elements present in both, as well as their indices in u and v, respectively.\n\nCredits: @MasonProtter\n\n\n\n\n\n","category":"method"}]
+}

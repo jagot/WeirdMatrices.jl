@@ -138,9 +138,10 @@ end
 
 # ** Arbitrary matrices
 
-function LinearAlgebra.mul!(y::AbstractMatrix, A::OneBlockMatrix, x::AbstractMatrix,
-                            α::Number=true, β::Number=false)
-    mY,nY = size(y)
+function _mul!(y::AbstractArray{T,N}, A::OneBlockMatrix, x::AbstractArray{T,N},
+               α::Number=true, β::Number=false) where {T,N}
+    mY = size(y,1)
+    nY = size(y,2)
     mA = size(A,1)
     nX = size(x,2)
     mY == mA && nY == nX ||
@@ -160,6 +161,12 @@ function LinearAlgebra.mul!(y::AbstractMatrix, A::OneBlockMatrix, x::AbstractMat
 
     y
 end
+
+LinearAlgebra.mul!(y::AbstractVector, A::OneBlockMatrix, x::AbstractVector,
+                   α::Number=true, β::Number=false) = _mul!(y, A, x, α, β)
+
+LinearAlgebra.mul!(y::AbstractMatrix, A::OneBlockMatrix, x::AbstractMatrix,
+                   α::Number=true, β::Number=false) = _mul!(y, A, x, α, β)
 
 # ** OneBlockMatrices
 

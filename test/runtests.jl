@@ -7,7 +7,15 @@ using Test
 @testset "WeirdMatrices.jl" begin
     @testset "OneBlockMatrices" begin
         N = 7
-        A = OneBlockMatrix(Matrix(reshape(1:16, 4,4)), N, N)
+        upper_block = Matrix(reshape(1:16, 4,4))
+        A = OneBlockMatrix(upper_block, N, N)
+        denseA = zeros(N, N)
+        denseA[1:4,1:4] = upper_block
+
+        for i = 1:N, j = 1:N
+            @test A[i,j] == denseA[i,j]
+        end
+        @test A[1:5,3:7] == denseA[1:5,3:7]
 
         eye = Matrix{Int}(I, size(A))
         out = similar(eye)

@@ -27,10 +27,20 @@ Base.similar(A::OneBlockMatrix, ::Type{T}) where T =
 Base.similar(A::OneBlockMatrix{T}, dims::Union{Integer, AbstractUnitRange}...) where T=
     similar(A, T, dims...)
 
-function Base.getindex(A::OneBlockMatrix{T}, i, j) where T
+function Base.getindex(A::OneBlockMatrix{T}, i::Integer, j::Integer) where T
     m,n = size(A.block)
     i ≤ m && j ≤ n && return A.block[i,j]
     zero(T)
+end
+
+function Base.getindex(A::OneBlockMatrix{T}, i::AbstractVector, j::AbstractVector) where T
+    b = zeros(T, length(i), length(j))
+    for (k,i) in enumerate(i)
+        for (l,j) in enumerate(j)
+            b[k,l] = A[i,j]
+        end
+    end
+    b
 end
 
 function Base.replace_in_print_matrix(A::OneBlockMatrix,i::Integer,j::Integer,s::AbstractString)
